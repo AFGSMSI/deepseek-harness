@@ -40,6 +40,8 @@ export const DESKTOP_IPC = {
   updatesStatus: 'dsh-desktop:updates-status',
   updatesOpen: 'dsh-desktop:updates-open',
   updatesPresentation: 'dsh-desktop:updates-presentation',
+  deepLinkTake: 'dsh-desktop:deep-link-take',
+  deepLinkChanged: 'dsh-desktop:deep-link-changed',
   nativeThemeSet: 'dsh-desktop:native-theme-set',
   windowFullscreen: 'dsh-desktop:window-fullscreen',
   windowsAppearance: 'dsh-desktop:windows-appearance',
@@ -102,6 +104,13 @@ export interface DshDesktopProductApi {
    * @returns `name=value` fields separated by `; `, with no hostname, user name, or serial number.
    */
   deviceInfo(): Promise<string>
+  /** External `dsh://open?session=<id>` deep-link target bridge for the workspace renderer. */
+  readonly deepLink: {
+    /** Drain the pending cold-start Session target and clear it; undefined when none is held. */
+    take(): Promise<string | undefined>
+    /** Subscribe to Session targets delivered while the application is already running. */
+    subscribe(listener: (session: string) => void): () => void
+  }
   readonly updates: {
     readonly channels: DesktopChannelBridge
     status(): Promise<DesktopUpdatePresentation>

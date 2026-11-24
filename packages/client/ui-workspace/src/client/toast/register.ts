@@ -59,6 +59,12 @@ export function registerToasts(
       }),
     }, ToastEntry<PropsRuntime<'workspace.toast', 'archivedNotOpenable'>>)
     yield ctx.slots.register({
+      name: 'workspace.toast', key: 'deepLinkUnknown', locale: 'workspace',
+      inject: (): ToastDisplayInjected<'deepLinkUnknown'> => ({
+        display: (_notice, t) => ({ text: t('toast.deepLinkUnknown'), tone: 'warning' }),
+      }),
+    }, ToastEntry<PropsRuntime<'workspace.toast', 'deepLinkUnknown'>>)
+    yield ctx.slots.register({
       name: 'workspace.toast', key: 'defaultWorkspaceFailed', locale: 'workspace',
       inject: (): ToastDisplayInjected<'defaultWorkspaceFailed'> => ({
         display: (_notice, t) => ({ text: t('defaultWorkspace.failed'), tone: 'warning' }),

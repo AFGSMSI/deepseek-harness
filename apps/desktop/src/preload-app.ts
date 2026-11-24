@@ -34,6 +34,14 @@ function createProductApi(): DshDesktopProductApi {
       }) },
     },
     deviceInfo: () => ipcRenderer.invoke(DESKTOP_IPC.deviceInfo) as Promise<string>,
+    deepLink: {
+      take: () => ipcRenderer.invoke(DESKTOP_IPC.deepLinkTake) as Promise<string | undefined>,
+      subscribe(listener) {
+        const handle = (_event: Electron.IpcRendererEvent, session: string): void => { listener(session) }
+        ipcRenderer.on(DESKTOP_IPC.deepLinkChanged, handle)
+        return () => { ipcRenderer.off(DESKTOP_IPC.deepLinkChanged, handle) }
+      },
+    },
     keyboard: {
       closeWindow: revision => ipcRenderer.invoke(DESKTOP_IPC.shortcutsCloseWindow, revision) as Promise<void>,
       subscribe: (listener) => {

@@ -362,6 +362,8 @@ export type RowToast =
   | { kind: 'pinFailed' }
   | { kind: 'unpinFailed' }
   | { kind: 'archivedNotOpenable' }
+  /** An external deep link named a Session that is unknown or no longer accessible. */
+  | { kind: 'deepLinkUnknown' }
   | { kind: 'defaultWorkspaceFailed' }
   | { kind: 'forkRequiresOpen'; sessionId: SessionId }
   | { kind: 'shortcutForkFailed'; reason: 'unavailable' | 'failed' }

@@ -52,6 +52,7 @@ import {
 } from './contract/slots.ts'
 import { createWorkspaceShortcutControls, installWorkspaceShortcuts } from './shortcuts.ts'
 import { UiWorkspaceService } from './navigation.ts'
+import { installDeepLinkNavigation } from './deep-link.ts'
 import { createWorkspaceViewStore } from './stores.ts'
 import { WorkspaceBrowser } from './rows/WorkspaceBrowser.tsx'
 import { ArchiveSessionRowButton, SessionArchiveConfirmDialog } from './session-actions/ArchiveSession.tsx'
@@ -167,6 +168,7 @@ export function apply(ctx: Context, config: SyncedConfig<WorkspaceNavigationConf
   const uiWorkspace = new UiWorkspaceService(
     ctx, ctx.remote.directoryPicker, workspaces, sessions, viewInstance.actions, notify, config.recentViewLimit,
   )
+  installDeepLinkNavigation(ctx, sessions, workspaces, (sessionId) => { uiWorkspace.openSession(sessionId) }, notify)
   ctx.slots.provideRoot({
     hooks: { workspaces: workspaces.list },
     keyedHooks: {

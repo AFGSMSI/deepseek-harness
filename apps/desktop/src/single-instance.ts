@@ -1,26 +1,30 @@
 /** Electron single-instance ownership before any Desktop profile lifecycle begins. */
 
+/** Launch arguments a second-instance event carries to the primary process. */
+export type SecondInstanceArgv = readonly string[]
+
 /** Minimal Electron application operations needed for instance ownership. */
 export interface DesktopSingleInstanceApplication {
   requestSingleInstanceLock(): boolean
   quit(): void
-  on(event: 'second-instance', listener: () => void): unknown
+  on(event: 'second-instance', listener: (event: unknown, argv?: SecondInstanceArgv) => void): unknown
 }
 
 /**
  * Claim the process-lifetime Desktop lock and route later launches to the owner.
  * @param application - Electron application singleton.
- * @param focusOwner - focus or recreate the primary window after a later launch.
+ * @param focusOwner - focus or recreate the primary window after a later launch,
+ * receiving that launch's arguments so a carried deep link can be handed off.
  * @returns true only in the process that may access the Desktop profile.
  */
 export function claimDesktopSingleInstance(
   application: DesktopSingleInstanceApplication,
-  focusOwner: () => void,
+  focusOwner: (argv: SecondInstanceArgv) => void,
 ): boolean {
   if (!application.requestSingleInstanceLock()) {
     application.quit()
     return false
   }
-  application.on('second-instance', focusOwner)
+  application.on('second-instance', (_event, argv) => { focusOwner(argv ?? []) })
   return true
 }

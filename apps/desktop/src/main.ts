@@ -39,6 +39,7 @@ import { readDeviceInfo } from './device-info.ts'
 import { desktopUpdateReadyConfirmation, formatDesktopMessage, resolveDesktopLocale, resolveDesktopStartupLocale } from './locale.ts'
 import type { DesktopMessages } from './locale.ts'
 import { claimDesktopSingleInstance } from './single-instance.ts'
+import { parseDeepLinkSession, parseDeepLinkSessionArgv } from './deep-link.ts'
 import { desktopUpdateChannel } from './update-channel.ts'
 import { DesktopUpdateCoordinator } from './update-coordinator.ts'
 import { prepareDesktopUpdateWindow } from './update-window.ts'
@@ -73,6 +74,10 @@ import { DesktopTray } from './tray.ts'
 import { DesktopBackgroundNotice } from './background-notice.ts'
 
 let focusPrimaryWindow = (): void => {}
+/** Session target carried by an external deep link before the workspace renderer drains it. */
+let pendingDeepLink: string | undefined
+/** Forward a parsed deep-link Session target to the live renderer, or hold it for cold start. */
+let notifyDeepLink = (_session: string): void => {}
 let stopForRecovery = async (): Promise<void> => { await stopOperationReports() }
 let shuttingDown = false
 /**
@@ -385,6 +390,9 @@ async function main(): Promise<void> {
   const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())
   const resources = runtimeResources()
   const paths = resolveDesktopPaths()
+  // A cold-start relaunch may carry the deep link in argv (Windows); macOS delivers it through
+  // `open-url`, which overwrites this pending target before the renderer drains it.
+  pendingDeepLink = parseDeepLinkSessionArgv(process.argv) ?? undefined
   const development = !app.isPackaged
   const primaryRuntime = development
     ? developmentPrimaryRuntime()
@@ -949,6 +957,12 @@ async function main(): Promise<void> {
     assertProductSender(event)
     return readDeviceInfo()
   })
+  ipcMain.handle(DESKTOP_IPC.deepLinkTake, (event) => {
+    assertProductSender(event)
+    const pending = pendingDeepLink
+    pendingDeepLink = undefined
+    return pending
+  })
   ipcMain.handle(DESKTOP_IPC.onboardingApiKey, async (event) => {
     assertProductSender(event)
     return (await readWelcomeState()).hasApiKey
@@ -1480,6 +1494,12 @@ async function main(): Promise<void> {
       await enterWorkspace()
     }
   }
+  notifyDeepLink = (session: string): void => {
+    pendingDeepLink = session
+    const window = mainWindow
+    if (window === undefined || window.isDestroyed()) return
+    window.webContents.send(DESKTOP_IPC.deepLinkChanged, session)
+  }
   focusPrimaryWindow = () => {
     if (quitting) return
     if (isMandatory()) { mandatoryUI?.focus(); return }
@@ -1499,6 +1519,12 @@ async function main(): Promise<void> {
   if (app.isPackaged || process.env.DSH_DESKTOP_DEV_APP === '1') app.setAsDefaultProtocolClient('dsh')
   app.on('open-url', (event, url) => {
     event.preventDefault()
+    const session = parseDeepLinkSession(url)
+    if (session !== null) {
+      focusPrimaryWindow()
+      notifyDeepLink(session)
+      return
+    }
     if (url === 'dsh://open' || url === 'dsh://open/') focusPrimaryWindow()
   })
 
@@ -1615,7 +1641,11 @@ async function main(): Promise<void> {
   publishUpdate(updateState)
 }
 
-const ownsDesktopInstance = claimDesktopSingleInstance(app, () => { focusPrimaryWindow() })
+const ownsDesktopInstance = claimDesktopSingleInstance(app, (argv) => {
+  const session = parseDeepLinkSessionArgv(argv)
+  focusPrimaryWindow()
+  if (session !== null) notifyDeepLink(session)
+})
 
 if (ownsDesktopInstance) void app.whenReady().then(main).catch(async (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error)

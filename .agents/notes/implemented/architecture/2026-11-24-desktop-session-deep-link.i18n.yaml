@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for 2026-11-24-desktop-session-deep-link.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-11-24-desktop-session-deep-link.md
+/agent-note-desktop-session-level-deep-links:
+  en: 79f4f85f727eb778
+  zh: 473b35a92a328513
+/agent-note-desktop-session-level-deep-links/problem:
+  en: a52a5f080b287be4
+  zh: 29cc9af970579952
+/agent-note-desktop-session-level-deep-links/decision:
+  en: 527cf8abfb7980da
+  zh: c5764931bbb1107d
+/agent-note-desktop-session-level-deep-links/decision/parsing-in-the-main-process:
+  en: 8035fbf92677a29f
+  zh: 2711d1cefd6cebc7
+/agent-note-desktop-session-level-deep-links/decision/entry-points:
+  en: 7c54b0cff7482cfc
+  zh: a2666c6916416e79
+/agent-note-desktop-session-level-deep-links/decision/preload-bridge:
+  en: c7a1f78bc866b768
+  zh: a221703e26a51d59
+/agent-note-desktop-session-level-deep-links/decision/renderer-navigation:
+  en: 9add57c952eaacbe
+  zh: 3f5cd782109891a6
+/agent-note-desktop-session-level-deep-links/alternatives-considered:
+  en: 66eb5457f9d093cc
+  zh: 3c061c32aa634960
+/agent-note-desktop-session-level-deep-links/consequences:
+  en: 67dbe66373a85531
+  zh: 1689f68f45f98fc8
+/agent-note-desktop-session-level-deep-links/testing:
+  en: f7f6350e64ed50fa
+  zh: 8c8d7606e858ef07
